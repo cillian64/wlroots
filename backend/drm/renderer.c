@@ -339,19 +339,24 @@ static struct wlr_drm_fb *drm_fb_create(struct wlr_drm_backend *drm,
 		return NULL;
 	}
 
+	uint64_t simplified_modifier =
+		fourcc_mod_is_vendor(attribs.modifier, BROADCOM)
+		? fourcc_mod_broadcom_mod(attribs.modifier)
+		: attribs.modifier;
+
 	if (formats && !wlr_drm_format_set_has(formats, attribs.format,
-			attribs.modifier)) {
+			simplified_modifier)) {
 		// The format isn't supported by the plane. Try stripping the alpha
 		// channel, if any.
 		const struct wlr_pixel_format_info *info =
 			drm_get_pixel_format_info(attribs.format);
 		if (info != NULL && info->opaque_substitute != DRM_FORMAT_INVALID &&
-				wlr_drm_format_set_has(formats, info->opaque_substitute, attribs.modifier)) {
+				wlr_drm_format_set_has(formats, info->opaque_substitute, simplified_modifier)) {
 			attribs.format = info->opaque_substitute;
 		} else {
 			wlr_log(WLR_DEBUG, "Buffer format 0x%"PRIX32" with modifier "
 				"0x%"PRIX64" cannot be scanned out",
-				attribs.format, attribs.modifier);
+				attribs.format, simplified_modifier);
 			goto error_fb;
 		}
 	}
