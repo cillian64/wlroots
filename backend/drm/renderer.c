@@ -355,8 +355,16 @@ static struct wlr_drm_fb *drm_fb_create(struct wlr_drm_backend *drm,
 			attribs.format = info->opaque_substitute;
 		} else {
 			wlr_log(WLR_DEBUG, "Buffer format 0x%"PRIX32" with modifier "
-				"0x%"PRIX64" cannot be scanned out",
+				"0x%"PRIX64" cannot be scanned out.  Supported formats:",
 				attribs.format, simplified_modifier);
+			for (size_t i = 0; i < formats->len; i++) {
+				wlr_log(WLR_DEBUG, "Supported format 0x%"PRIX32,
+				        formats->formats[i].format);
+				for (size_t j = 0; j < formats->formats[i].len; j++) {
+					wlr_log(WLR_DEBUG, "  with modifier 0x%"PRIX64,
+							formats->formats[i].modifiers[j]);
+				}
+			}
 			goto error_fb;
 		}
 	}

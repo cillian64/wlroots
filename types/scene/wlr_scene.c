@@ -1515,7 +1515,10 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 	struct wlr_scene_output *scene_output = data->output;
 	struct wlr_scene_node *node = entry->node;
 
+	wlr_log(WLR_DEBUG, "Trying to do direct scanout...");
+
 	if (!scene_output->scene->direct_scanout) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because it's disabled.");
 		return false;
 	}
 
@@ -1523,10 +1526,12 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 			WLR_SCENE_DEBUG_DAMAGE_HIGHLIGHT) {
 		// We don't want to enter direct scan out if we have highlight regions
 		// enabled. Otherwise, we won't be able to render the damage regions.
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because damage highlighting is on.");
 		return false;
 	}
 
 	if (node->type != WLR_SCENE_NODE_BUFFER) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because it's not a scene_node_buffer.");
 		return false;
 	}
 
@@ -1534,14 +1539,25 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 			WLR_OUTPUT_STATE_ENABLED |
 			WLR_OUTPUT_STATE_RENDER_FORMAT)) {
 		// Legacy DRM will explode if we try to modeset with a direct scanout buffer
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because we're modesetting.");
 		return false;
 	}
 
 	if (!wlr_output_is_direct_scanout_allowed(scene_output->output)) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because the output doesn't allow it.");
 		return false;
 	}
 
 	struct wlr_scene_buffer *buffer = wlr_scene_buffer_from_node(node);
+
+	wlr_log(
+		WLR_DEBUG,
+		"scanout wlr_scene_buf has src box %fx%f dst size %dx%d",
+		buffer->src_box.width,
+		buffer->src_box.height,
+		buffer->dst_width,
+		buffer->dst_height
+	);
 
 	struct wlr_fbox default_box = {0};
 	if (buffer->transform & WL_OUTPUT_TRANSFORM_90) {
@@ -1554,10 +1570,12 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 
 	if (!wlr_fbox_empty(&buffer->src_box) &&
 			!wlr_fbox_equal(&buffer->src_box, &default_box)) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because the fbox is wrong.");
 		return false;
 	}
 
 	if (buffer->transform != data->transform) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because there's a transform.");
 		return false;
 	}
 
@@ -1565,6 +1583,7 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 	scene_node_get_size(node, &node_box.width, &node_box.height);
 
 	if (!wlr_box_equal(&data->logical, &node_box)) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because the node_box is wrong.");
 		return false;
 	}
 
@@ -1581,6 +1600,7 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 	struct wlr_output_state pending;
 	wlr_output_state_init(&pending);
 	if (!wlr_output_state_copy(&pending, state)) {
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because output_state_copy failed.");
 		return false;
 	}
 
@@ -1589,6 +1609,7 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 
 	if (!wlr_output_test_state(scene_output->output, &pending)) {
 		wlr_output_state_finish(&pending);
+		wlr_log(WLR_DEBUG, "Not doing direct scanout because test_state failed.");
 		return false;
 	}
 
@@ -1600,6 +1621,7 @@ static bool scene_entry_try_direct_scanout(struct render_list_entry *entry,
 		.direct_scanout = true,
 	};
 	wl_signal_emit_mutable(&buffer->events.output_sample, &sample_event);
+	wlr_log(WLR_DEBUG, "Direct scanout worked!.");
 	return true;
 }
 
@@ -1701,6 +1723,15 @@ bool wlr_scene_output_build_state(struct wlr_scene_output *scene_output,
 	struct render_list_entry *list_data = list_con.render_list->data;
 	int list_len = list_con.render_list->size / sizeof(*list_data);
 
+	if (list_len != 1) {
+		wlr_log(
+			WLR_DEBUG,
+			"Not trying direct scanout because there are %d (>1) render list entries",
+			list_len
+		);
+	} else {
+		wlr_log(WLR_DEBUG, "Render list contains %d entries.", list_len);
+	}
 	bool scanout = list_len == 1 &&
 		scene_entry_try_direct_scanout(&list_data[0], state, &render_data);
 
