@@ -690,25 +690,25 @@ void pop_gles2_debug(struct wlr_gles2_renderer *renderer) {
 	}
 }
 
-static enum wlr_log_importance gles2_log_importance_to_wlr(GLenum type) {
-	switch (type) {
-	case GL_DEBUG_TYPE_ERROR_KHR:               return WLR_ERROR;
-	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_KHR: return WLR_DEBUG;
-	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_KHR:  return WLR_ERROR;
-	case GL_DEBUG_TYPE_PORTABILITY_KHR:         return WLR_DEBUG;
-	case GL_DEBUG_TYPE_PERFORMANCE_KHR:         return WLR_DEBUG;
-	case GL_DEBUG_TYPE_OTHER_KHR:               return WLR_DEBUG;
-	case GL_DEBUG_TYPE_MARKER_KHR:              return WLR_DEBUG;
-	case GL_DEBUG_TYPE_PUSH_GROUP_KHR:          return WLR_DEBUG;
-	case GL_DEBUG_TYPE_POP_GROUP_KHR:           return WLR_DEBUG;
-	default:                                    return WLR_DEBUG;
-	}
-}
+//static enum wlr_log_importance gles2_log_importance_to_wlr(GLenum type) {
+//	switch (type) {
+//	case GL_DEBUG_TYPE_ERROR_KHR:               return WLR_ERROR;
+//	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_KHR: return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_KHR:  return WLR_ERROR;
+//	case GL_DEBUG_TYPE_PORTABILITY_KHR:         return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_PERFORMANCE_KHR:         return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_OTHER_KHR:               return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_MARKER_KHR:              return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_PUSH_GROUP_KHR:          return WLR_DEBUG;
+//	case GL_DEBUG_TYPE_POP_GROUP_KHR:           return WLR_DEBUG;
+//	default:                                    return WLR_DEBUG;
+//	}
+//}
 
-static void gles2_log(GLenum src, GLenum type, GLuint id, GLenum severity,
-		GLsizei len, const GLchar *msg, const void *user) {
-	_wlr_log(gles2_log_importance_to_wlr(type), "[GLES2] %s", msg);
-}
+//static void gles2_log(GLenum src, GLenum type, GLuint id, GLenum severity,
+//		GLsizei len, const GLchar *msg, const void *user) {
+//	_wlr_log(gles2_log_importance_to_wlr(type), "[GLES2] %s", msg);
+//}
 
 static GLuint compile_shader(struct wlr_gles2_renderer *renderer,
 		GLenum type, const GLchar *src) {
@@ -919,15 +919,15 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 	}
 
 	if (renderer->exts.KHR_debug) {
-		glEnable(GL_DEBUG_OUTPUT_KHR);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
-		renderer->procs.glDebugMessageCallbackKHR(gles2_log, NULL);
+		//glEnable(GL_DEBUG_OUTPUT_KHR);
+		//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_KHR);
+		//renderer->procs.glDebugMessageCallbackKHR(gles2_log, NULL);
 
 		// Silence unwanted message types
-		renderer->procs.glDebugMessageControlKHR(GL_DONT_CARE,
-			GL_DEBUG_TYPE_POP_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
-		renderer->procs.glDebugMessageControlKHR(GL_DONT_CARE,
-			GL_DEBUG_TYPE_PUSH_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
+		//renderer->procs.glDebugMessageControlKHR(GL_DONT_CARE,
+		//	GL_DEBUG_TYPE_POP_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
+		//renderer->procs.glDebugMessageControlKHR(GL_DONT_CARE,
+		//	GL_DEBUG_TYPE_PUSH_GROUP_KHR, GL_DONT_CARE, 0, NULL, GL_FALSE);
 	}
 
 	push_gles2_debug(renderer);
